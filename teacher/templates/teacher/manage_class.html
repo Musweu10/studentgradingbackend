@@ -1,0 +1,34 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Managing {{ class.name }}</h2>
+<div class="card my-3">
+    <div class="card-body border border-secondary rounded">
+        <h5 class="card-title">Students List:</h5>
+        <ul>
+            {% for student in students %}
+            <li><strong>{{ student.get_full_name }}</strong></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+
+<div class="card my-3">
+    <div class="card-body border border-secondary rounded-3">
+        <h5 class="card-title">Subjects:</h5>
+        <ul>
+            {% for subject in subjects %}
+            <li class="p-2">
+                {{ subject.name }} - Taught by - <strong>{{ subject.teacher.get_full_name }}</strong>
+                <a class="mx-3 btn btn-primary" href="{% url 'teacher:add_grade' class.id subject.id %}">Add
+                    Grades</a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<a href="{% url 'teacher:teacher_dashboard' %}" class="btn btn-danger">Back to Dashboard</a>
+<a class="btn btn-primary" href="{% url 'teacher:mark_attendance' class.id %}">Mark Attendance</a>
+{% endblock %}

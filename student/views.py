@@ -1,3 +1,6 @@
+from .serializers import AttendanceSerializer
+from teacher.models import Attendance
+from rest_framework import generics
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -112,3 +115,12 @@ class StudentProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class StudentAttendanceView(generics.ListAPIView):
+    serializer_class = AttendanceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Attendance.objects.filter(student=user).order_by('-date')

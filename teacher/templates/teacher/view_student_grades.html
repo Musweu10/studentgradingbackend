@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Grades for {{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <h2>Grades for {{ student.get_full_name }} in Class: {{ class_obj.name }}</h2>
+
+    {% if grades %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Mid-Term Score</th>
+                <th>Final Exam Score</th>
+                <th>Total Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grade in grades %}
+            <tr>
+                <td>{{ grade.subject.name }}</td>
+                <td>{{ grade.mid_term_score }}</td>
+                <td>{{ grade.final_exam_score }}</td>
+                <td>{{ grade.total_score }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No grades available for this student.</p>
+    {% endif %}
+</div>
+
+<a href="{% url 'teacher:view_grades' class_obj.id %}" class="btn btn-secondary">Back to Class Grades</a>
+{% endblock %}

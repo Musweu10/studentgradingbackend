@@ -1,8 +1,10 @@
+from accounts.models import User
+from teacher.models import Class, Subject, Attendance, Grade
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken  # Place this import here
-
+from teacher.models import Subject, Attendance
 User = get_user_model()
 
 
@@ -50,3 +52,46 @@ class StudentProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'first_name', 'last_name',
                   'email', 'guardian_first_name', 'guardian_last_name', 'guardian_phone_number', 'date_joined']
+
+
+# students/serializers.py
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'email', 'role']
+
+
+class ClassSerializer(serializers.ModelSerializer):
+    teacher = UserSerializer()
+
+    class Meta:
+        model = Class
+        fields = ['id', 'name', 'teacher', 'students']
+
+
+class SubjectSerializer(serializers.ModelSerializer):
+    teacher = UserSerializer()
+
+    class Meta:
+        model = Subject
+        fields = ['id', 'name', 'teacher', 'class_assigned']
+
+
+class AttendanceSerializer(serializers.ModelSerializer):
+    student = UserSerializer()
+
+    class Meta:
+        model = Attendance
+        fields = ['id', 'class_assigned', 'student', 'date', 'is_present']
+
+
+class GradeSerializer(serializers.ModelSerializer):
+    student = UserSerializer()
+    subject = SubjectSerializer()
+
+    class Meta:
+        model = Grade
+        fields = ['id', 'student', 'subject', 'mid_term_score',
+                  'final_exam_score', 'total_score']

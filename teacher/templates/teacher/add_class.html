@@ -1,0 +1,27 @@
+<!-- teacher/templates/teacher/add_class.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Add Class | {% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <h2>Add a New Class</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }} <!-- Display the label for the name field -->
+            {{ form.name }} <!-- Render the input field for the name -->
+        </div>
+        <div class="mb-3">
+            {{ form.teacher.label_tag }} <!-- Label for teacher -->
+            {{ form.teacher }} <!-- Render the dropdown for selecting a teacher -->
+        </div>
+        <div class="mb-3">
+            {{ form.students.label_tag }} <!-- Label for students -->
+            {{ form.students }} <!-- Render the multi-select for assigning students -->
+        </div>
+        <button type="submit" class="btn btn-success">Save Class</button>
+        <a href="{% url 'teacher:teacher_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

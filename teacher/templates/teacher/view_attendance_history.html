@@ -1,0 +1,60 @@
+<!-- teacher/templates/teacher/view_attendance_history.html -->
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container py-3">
+    <h2>Attendance History for {{ class.name }}</h2>
+    <a href="{% url 'teacher:teacher_dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+    <div class="card my-3">
+        <div class="card-body">
+            <h5 class="card-title">Attendance Summary</h5>
+            <p>Attendance Rate: {{ attendance_percentage }}%</p>
+        </div>
+    </div>
+
+
+    <!-- Filter Form -->
+    <form method="GET" class="mb-3">
+        <div class="row">
+            <div class="col-md-3">
+                <label for="filter_range" class="form-label">Filter By:</label>
+                <select name="filter_range" id="filter_range" class="form-select" onchange="this.form.submit()">
+                    <option value="day" {% if filter_range %}selected{% endif %}>Today</option>
+                    <option value="week" {% if filter_range %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if filter_range %}selected{% endif %}>This Month</option>
+                    <option value="term" {% if filter_range %}selected{% endif %}>This Term</option>
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <!-- Attendance Records Table -->
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Student Name</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in attendance_records %}
+            <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.student.get_full_name }}</td>
+                <td>
+                    {% if record.is_present %}
+                    Present
+                    {% else %}
+                    Absent
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center">No attendance records found for the selected period.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<h2>Add Grade for {{ subject.name }} in {{ class.name }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Submit Grade</button>
+</form>
+
+<a class="btn btn-primary mt-3" href="{% url 'teacher:manage_class' class.id %}">Back to Class Management</a>
+{% endblock %}

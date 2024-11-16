@@ -1,0 +1,27 @@
+<!-- teacher/templates/teacher/add_subject.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Add Subject | {% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <h2>Add a New Subject</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            {{ form.name.label_tag }}
+            {{ form.name }}
+        </div>
+        <div class="mb-3">
+            {{ form.class_assigned.label_tag }}
+            {{ form.class_assigned }}
+        </div>
+        <div class="mb-3">
+            {{ form.teacher.label_tag }}
+            {{ form.teacher }}
+        </div>
+        <button type="submit" class="btn btn-success">Save Subject</button>
+        <a href="{% url 'teacher:teacher_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
