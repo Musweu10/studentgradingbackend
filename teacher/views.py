@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @login_required
 def teacher_dashboard(request):
     if request.user.role != 'teacher':
-        return redirect('index')  # Redirect if not a teacher
+        return redirect('core:index')  # Redirect if not a teacher
 
     teacher = request.user
     classes = Class.objects.filter(teacher=teacher)

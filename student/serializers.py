@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework_simplejwt.tokens import RefreshToken  # Place this import here
-from teacher.models import Subject, Attendance
 User = get_user_model()
 
 
@@ -64,34 +63,40 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ClassSerializer(serializers.ModelSerializer):
-    teacher = UserSerializer()
+    teacher_name = serializers.CharField(
+        source='teacher.get_full_name', read_only=True)
 
     class Meta:
         model = Class
-        fields = ['id', 'name', 'teacher', 'students']
+        fields = ['id', 'name', 'teacher_name']
 
 
 class SubjectSerializer(serializers.ModelSerializer):
-    teacher = UserSerializer()
+    teacher_name = serializers.CharField(
+        source='teacher.get_full_name', read_only=True)
+    class_name = serializers.CharField(
+        source='class_assigned.name', read_only=True)
 
     class Meta:
         model = Subject
-        fields = ['id', 'name', 'teacher', 'class_assigned']
+        fields = ['id', 'name', 'teacher_name', 'class_name']
 
 
 class AttendanceSerializer(serializers.ModelSerializer):
-    student = UserSerializer()
+    class_name = serializers.CharField(
+        source='class_assigned.name', read_only=True)
 
     class Meta:
         model = Attendance
-        fields = ['id', 'class_assigned', 'student', 'date', 'is_present']
+        fields = ['id', 'class_name', 'date', 'is_present']
 
 
 class GradeSerializer(serializers.ModelSerializer):
-    student = UserSerializer()
-    subject = SubjectSerializer()
+    subject_name = serializers.CharField(source='subject.name', read_only=True)
+    subject_teacher = serializers.CharField(
+        source='subject.teacher.get_full_name', read_only=True)
 
     class Meta:
         model = Grade
-        fields = ['id', 'student', 'subject', 'mid_term_score',
-                  'final_exam_score', 'total_score']
+        fields = ['id', 'subject_name', 'subject_teacher',
+                  'mid_term_score', 'final_exam_score', 'total_score']

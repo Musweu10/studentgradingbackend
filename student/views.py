@@ -1,3 +1,6 @@
+from accounts.models import User
+from .serializers import ClassSerializer, SubjectSerializer, AttendanceSerializer, GradeSerializer
+from teacher.models import Class, Subject, Attendance, Grade
 from .serializers import AttendanceSerializer
 from teacher.models import Attendance
 from rest_framework import generics
@@ -7,10 +10,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions
+from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import (
     StudentRegistrationSerializer,
     LoginSerializer,
-    StudentProfileSerializer
+    StudentProfileSerializer,
+    ClassSerializer,
+    SubjectSerializer,
+    AttendanceSerializer,
+    GradeSerializer
 )
 
 User = get_user_model()
@@ -91,7 +99,25 @@ class LoginView(generics.GenericAPIView):
 #             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# class LogoutView(generics.GenericAPIView):
+#
+#     def post(self, request, *args, **kwargs):
+#         refresh_token = request.data.get('refresh')
+#         if not refresh_token:
+#             return Response({"detail": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         try:
+#             # Attempt to blacklist the refresh token
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()  # Blacklist the token if the blacklist app is installed
+#             return Response({"detail": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             # Handle exceptions, e.g., if the token is invalid or expired
+#             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 class LogoutView(generics.GenericAPIView):
+    # Allow access without a valid access token
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         refresh_token = request.data.get('refresh')
@@ -102,10 +128,11 @@ class LogoutView(generics.GenericAPIView):
             # Attempt to blacklist the refresh token
             token = RefreshToken(refresh_token)
             token.blacklist()  # Blacklist the token if the blacklist app is installed
+            # Add a success message in the response body
             return Response({"detail": "Logged out successfully"}, status=status.HTTP_205_RESET_CONTENT)
-        except Exception as e:
-            # Handle exceptions, e.g., if the token is invalid or expired
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TokenError as e:
+            # Handle exceptions if the token is invalid or expired
+            return Response({"detail": "Token is invalid or already blacklisted"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StudentProfileView(generics.RetrieveAPIView):
@@ -117,10 +144,112 @@ class StudentProfileView(generics.RetrieveAPIView):
         return self.request.user
 
 
-class StudentAttendanceView(generics.ListAPIView):
-    serializer_class = AttendanceSerializer
-    permission_classes = [IsAuthenticated]
+# Permission class to ensure only students access these endpoints
+
+
+class IsStudent(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == 'student'
+
+
+class StudentClassView(generics.ListAPIView):
+    serializer_class = ClassSerializer
+    permission_classes = [IsStudent]
 
     def get_queryset(self):
-        user = self.request.user
-        return Attendance.objects.filter(student=user).order_by('-date')
+        # Return the class the student is in
+        return Class.objects.filter(students=self.request.user)
+
+
+class StudentSubjectView(generics.ListAPIView):
+    serializer_class = SubjectSerializer
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        # Return subjects for the student's class
+        student_class = Class.objects.filter(
+            students=self.request.user).first()
+        return Subject.objects.filter(class_assigned=student_class)
+
+
+class StudentAttendanceHistoryView(generics.ListAPIView):
+    serializer_class = AttendanceSerializer
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        # Return attendance records for the student
+        return Attendance.objects.filter(student=self.request.user)
+
+
+class StudentGradesView(generics.ListAPIView):
+    serializer_class = GradeSerializer
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        # Return grades for the student
+        return Grade.objects.filter(student=self.request.user)
+
+
+# class StudentAttendanceView(generics.ListAPIView):
+#     serializer_class = AttendanceSerializer
+#     permission_classes = [IsAuthenticated]
+#
+#     def get_queryset(self):
+#         user = self.request.user
+#         return Attendance.objects.filter(student=user).order_by('-date')
+
+
+# Class Views
+#
+# class ClassListCreateView(generics.ListCreateAPIView):
+#     queryset = Class.objects.all()
+#     serializer_class = ClassSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#
+# class ClassDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Class.objects.all()
+#     serializer_class = ClassSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+# # Subject Views
+#
+#
+# class SubjectListCreateView(generics.ListCreateAPIView):
+#     queryset = Subject.objects.all()
+#     serializer_class = SubjectSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#
+# class SubjectDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Subject.objects.all()
+#     serializer_class = SubjectSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+# # Attendance Views
+#
+#
+# class AttendanceListCreateView(generics.ListCreateAPIView):
+#     queryset = Attendance.objects.all()
+#     serializer_class = AttendanceSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#
+# class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Attendance.objects.all()
+#     serializer_class = AttendanceSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+# # Grade Views
+#
+#
+# class GradeListCreateView(generics.ListCreateAPIView):
+#     queryset = Grade.objects.all()
+#     serializer_class = GradeSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#
+# class GradeDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Grade.objects.all()
+#     serializer_class = GradeSerializer
+#     permission_classes = [permissions.IsAuthenticated]
